@@ -5,7 +5,7 @@ Data and replication files taken from https://doi.org/10.17605/OSF.IO/CWFP2.
 
 Email on 2024-03-28 from author J. Nix supplied a link to Harvard Dataverse version that included an additional source datafile, https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/HNFQSP.
 
-Email on 2024-03-28 from auhtor J. Huff supplied a R file for spatial data analysis and weight calculation. This email also included neighborhoods.shp. 
+Email on 2024-03-28 from author J. Huff supplied a R file for spatial data analysis and weight calculation. This email also included neighborhoods.shp. 
 
 
 
