@@ -9,3 +9,29 @@ Email on 2024-03-28 from author J. Huff supplied a R file for spatial data analy
 
 
 
+The replication data folder did not include data on weather, air quality, or restaurants. So I downloaded this data from the respective sources.
+
+AQI
+1 Get annual files here: https://aqs.epa.gov/aqsweb/airdata/download_files.html#AQI
+
+WEATHER
+https://www.ncei.noaa.gov/cdo-web/search
+
+Dataset Daily Summaries
+Order Start Date 2016-01-01 00:00
+Order End Date 2020-12-31 23:59
+Output Format Custom GHCN-Daily CSV
+Data Types PRCP, SNWD, SNOW, TAVG, TMAX, TMIN
+Custom Flag(s) Station Name
+Units Standard
+Stations/Locations Denver County, CO (Location ID: FIPS:08031)
+
+OPEN TABLE
+1 navigate to the Open Table website in the Internet Archive https://web.archive.org/web/20210102090417/https://www.opentable.com/state-of-industry
+2 Under "Seated diners from online, phone, and walk-in reservations" click drop down for city
+3 click "download dataset", open table data set YoY_Seated_Diner_Data.csv
+4 open in plain text editor and manipulate first row to add "2020" year to date, then transpose, and keep only Denver.
+
+DENVER NEIGHBORHOODS SHAPE FILE
+1 Navigate to Denver's open data website for statistical neighborhoods https://www.denvergov.org/opendata/dataset/city-and-county-of-denver-statistical-neighborhoods
+2 download shapefile
