@@ -1,0 +1,648 @@
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/jkangbrown/Documents/Github/when_police_replication/replication_materials/merge_failure_files/merge_failure_log.log
+  log type:  text
+ opened on:   6 Apr 2024, 11:41:01
+
+. 
+end of do-file
+
+. do "/var/folders/1y/bx6dby812b1_r5vpwpv51ygc0000gn/T//SD41342.000000"
+
+. /* 
+> File for displaying information on merge failures in the code from Nix et al. 
+> 
+> Writen by Jacob Kang-Brown on Saturday April 6, 2024
+> 
+> This file copies the load commands and neighborhood-identifying-key specific commands
+> from the replication code. It adds simple commands to reduce the dataset to each neighborhood key 
+> used in the code for merging, and retains the string neighborhood variables in each file,
+> renaming them to match the source data files. 
+> 
+> 
+> */ 
+. 
+. 
+. 
+. // Set Up - indicate source of data
+. 
+. global denver "~/Downloads/replication_materials_data"
+
+. 
+. // set working directory to save files
+. global working_merge  "~/Documents/Github/when_police_replication/replication_materials/merge_failure_files"  
+
+. 
+. cd "$working_merge"
+/Users/jkangbrown/Documents/GitHub/when_police_replication/replication_materials/merge_failure_files
+
+. 
+. 
+. // 1 Load CAD Data, simplify and save
+. 
+. // 1.1 Load
+. use "$denver/CAD_geocoded_stata_13.dta", clear
+
+. 
+. encode nbhd_name, gen(neighborhood) // JKB note: was nhoodname in replication do file, indicating possible variance from original data. 
+
+.         
+. drop if neighborhood == . 
+(1025260 observations deleted)
+
+. 
+. // 1.2 Simplify and save
+. clonevar CAD_nb_key = nbhd_name
+
+. keep CAD_nb_key neighborhood 
+
+. duplicates drop
+
+Duplicates in terms of all variables
+
+(5826854 observations deleted)
+
+. sort neighborhood
+
+. save CAD_merge.dta, replace
+file CAD_merge.dta saved
+
+. 
+. // 2 Load Stop Data, simplify and save
+. 
+. import delimited "$denver/police_pedestrian_stops_and_vehicle_stops.csv", clear
+(14 vars, 944495 obs)
+. 
+. // 2.1 Load stop data 
+. * generate stop variables for each year for each neighborhood
+. * first, combine central park (11) and stapelton (62), as these are the same geographic area, it just changed names
+. * also, change "None" (48) to missing, and recode the neighborhoods > 48 so that the range is 1-78 with no skips
+.         encode neighborhood_name, gen(neighborhood)
+
+.         recode neighborhood (62 = 11)
+(neighborhood: 38157 changes made)
+
+.         recode neighborhood (48 = .)
+(neighborhood: 20092 changes made)
+
+.         replace neighborhood = neighborhood - 1 if neighborhood >=49 & neighborhood <= 61
+(116135 real changes made)
+
+.         replace neighborhood = neighborhood - 2 if neighborhood >= 63 & neighborhood <= 80
+(193243 real changes made)
+
+.         sum neighborhood
+
+    Variable |       Obs        Mean    Std. Dev.       Min        Max
+-------------+--------------------------------------------------------
+neighborhood |    924403    36.48024    22.97366          1         78
+
+.         
+.         drop if neighborhood == . 
+(20092 observations deleted)
+
+. // 2.2  simplify and save
+. 
+. clonevar stop_nb_key = neighborhood_name
+
+. replace stop_nb_key = "Central Park or Stapleton" if neighborhood == 11 
+(41020 real changes made)
+
+. 
+. keep stop_nb_key neighborhood 
+
+. duplicates drop
+
+Duplicates in terms of all variables
+
+(924325 observations deleted)
+
+. sort neighborhood
+
+. save stop_merge.dta, replace
+file stop_merge.dta saved
+
+. 
+. 
+. 
+. // 3 Load Crime Data, simplify and save
+. 
+.         import delimited "$denver/crime.csv", clear
+(19 vars, 454540 obs)
+. 
+. // 3.1 Load stop data 
+. * generate stop variables for each year for each neighborhood
+. * first, combine central park (11) and stapelton (62), as these are the same geographic area, it just changed names
+. * also, change "None" (48) to missing, and recode the neighborhoods > 48 so that the range is 1-78 with no skips
+.         encode neighborhood_id, gen(neighborhood)
+
+.         recode neighborhood (61 = 11)
+(neighborhood: 18444 changes made)
+
+.         replace neighborhood = neighborhood - 1 if neighborhood >= 62 & neighborhood <= 80
+(88584 real changes made)
+
+.         
+.         drop if neighborhood == . // N = 1
+(1 observation deleted)
+
+. // 3.2  simplify and save
+. clonevar crime_nb_key = neighborhood_id
+
+. replace crime_nb_key = "Central Park or Stapleton" if neighborhood == 11 
+(20339 real changes made)
+
+. keep crime_nb_key neighborhood 
+
+. duplicates drop
+
+Duplicates in terms of all variables
+
+(454461 observations deleted)
+
+. sort neighborhood
+
+. save crime_merge.dta, replace
+file crime_merge.dta saved
+
+. 
+. 
+. 
+. 
+. 
+. // 4 Load Arrest Data, simplify and save
+. 
+. 
+. // 4.1 Load arrest data 
+. 
+. global arrest "$denver/Arrest_Files"
+
+. 
+. clear
+
+.         cd "$arrest"
+/Users/jkangbrown/Downloads/replication_materials_data/Arrest_Files
+
+.         local files: dir "$arrest" files "Arrest*.csv"
+
+.         di `"`files'"'
+"Arrest2017_NoJV_SAs.csv" "Arrest2016_NoJV_SAs.csv" "Arrest2020_NoJV_SAs.csv" "Arrest2018_NoJV_SAs.csv" "Arrest2019_NoJV_SAs.csv"
+
+.         tempfile main // generate temporary save file to store data in
+
+.         save `main', replace empty
+(note: dataset contains 0 observations)
+(note: file /var/folders/1y/bx6dby812b1_r5vpwpv51ygc0000gn/T//S_41342.000001 not found)
+file /var/folders/1y/bx6dby812b1_r5vpwpv51ygc0000gn/T//S_41342.000001 saved
+
+.         clear
+
+.         foreach x in `files' {
+  2.                 di "`x'" // display file name
+  3.                 
+.                 * import each file
+.                         qui: import delimited "`x'",  case(preserve) clear 
+  4.                         qui: gen data_id = subinstr("`x'", ".xlsx", "", .) // generate id variable
+  5.                 
+.                 * append each file to the main file
+.                         append using `main', force
+  6.                         save `main', replace
+  7.         }
+Arrest2017_NoJV_SAs.csv
+file /var/folders/1y/bx6dby812b1_r5vpwpv51ygc0000gn/T//S_41342.000001 saved
+Arrest2016_NoJV_SAs.csv
+file /var/folders/1y/bx6dby812b1_r5vpwpv51ygc0000gn/T//S_41342.000001 saved
+Arrest2020_NoJV_SAs.csv
+file /var/folders/1y/bx6dby812b1_r5vpwpv51ygc0000gn/T//S_41342.000001 saved
+Arrest2018_NoJV_SAs.csv
+file /var/folders/1y/bx6dby812b1_r5vpwpv51ygc0000gn/T//S_41342.000001 saved
+Arrest2019_NoJV_SAs.csv
+file /var/folders/1y/bx6dby812b1_r5vpwpv51ygc0000gn/T//S_41342.000001 saved
+
+.         
+.         encode Nbhd_Name, gen(neighborhood)
+
+.         
+.         drop if neighborhood == .
+(2841968 observations deleted)
+
+. 
+. cd "$working_merge"
+/Users/jkangbrown/Documents/GitHub/when_police_replication/replication_materials/merge_failure_files
+
+. 
+. 
+. // 4.2  simplify and save
+. clonevar arrest_nb_key = Nbhd_Name
+
+. keep arrest_nb_key neighborhood 
+
+. duplicates drop
+
+Duplicates in terms of all variables
+
+(203845 observations deleted)
+
+. sort neighborhood
+
+. save arrest_merge.dta, replace
+file arrest_merge.dta saved
+
+. 
+. 
+. // 5 Load Traffic Accident Data, simplify and save
+. 
+. // 5.1 Load stop data 
+. 
+.         import delimited "$denver/traffic_accidents.csv", clear
+(45 vars, 189262 obs)
+.         
+. * Encode and clean the Neighborhood variable
+. * first, combine central park and stapelton, as these are the same geographic area, it just changed names
+. * then, renumber neighborhoods so they match the numbers that are used in the Stops data (see "Denver Neighborhood Key.xlsx")
+.         encode neighborhood_id, gen(neighborhood)
+
+.         recode neighborhood (61 = 11) 
+(neighborhood: 8558 changes made)
+
+.         replace neighborhood = neighborhood - 1 if neighborhood >= 62 & neighborhood <= 80
+(33923 real changes made)
+
+.         
+.         drop if neighborhood == .
+(7421 observations deleted)
+
+. 
+.         
+. 
+. // 5.2  simplify and save
+. clonevar traffic_nb_key = neighborhood_id
+
+. replace traffic_nb_key = "Central Park or Stapleton" if neighborhood == 11 
+(10168 real changes made)
+
+. keep traffic_nb_key neighborhood 
+
+. duplicates drop
+
+Duplicates in terms of all variables
+
+(181763 observations deleted)
+
+. sort neighborhood
+
+. save traffic_merge.dta, replace
+file traffic_merge.dta saved
+
+. 
+. // 6 Load ACS data
+. 
+. // For replication purpose, made an alternate excel that was identical to source data except for one change:
+. //  I created a new colum directly to the right of "Neighborhood", named "neighborhood" and given it an ascending code, 1-78. 
+. //  This is the only way to make the import code in the file work. It expects a numeric variable
+. //  named neighborhood. It expects that the 5th column with a 60-character-long field name in the first row,
+. //  "Percent Estimate!!RACE!!Total population!!Two or more races"  will be renamed by Stata to "F" during import. 
+. //  Further, variable processing code later in the file expects empty values at neighborhood = 40 and  neighborhood = 61 for the 
+. //  Median house value field. Adding a numeric neighborhood field solves for those varied problems and allows 
+. //  the replication code to run as-is.  
+. 
+. 
+. // 6.1 Load
+.         import excel "$denver/alt_2014-2018 ACS 5 Year Estimates Denver.xlsx", sheet("NBHD") firstrow clear
+
+.         drop if neighborhood == . 
+(63 observations deleted)
+
+. 
+. // 6.2 simplify and save
+. clonevar acs_nb_key = Neighborhood
+
+. keep  acs_nb_key  neighborhood 
+
+. duplicates drop
+
+Duplicates in terms of all variables
+
+(0 observations are duplicates)
+
+. sort neighborhood
+
+. save  acs_merge.dta, replace
+file acs_merge.dta saved
+
+. 
+. // 7 Load Shapefile
+.         
+. //      use r code in "merge_failure_shape.R" for working with the spatial data and saving as "shape_merge.dta"
+. 
+. // 8 Merge files
+. 
+. cd "$working_merge"
+/Users/jkangbrown/Documents/GitHub/when_police_replication/replication_materials/merge_failure_files
+
+. 
+. use CAD_merge.dta, clear
+
+. merge 1:1 neighborhood using stop_merge.dta, gen(_m_stop)
+(label neighborhood already defined)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                78  (_m_stop==3)
+    -----------------------------------------
+
+. merge 1:1 neighborhood using crime_merge.dta, gen(_m_crime)
+(label neighborhood already defined)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                78  (_m_crime==3)
+    -----------------------------------------
+
+. merge 1:1 neighborhood using arrest_merge.dta, gen(_m_arrest)
+(label neighborhood already defined)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                78  (_m_arrest==3)
+    -----------------------------------------
+
+. merge 1:1 neighborhood using traffic_merge.dta, gen(_m_traffic)
+(label neighborhood already defined)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                78  (_m_traffic==3)
+    -----------------------------------------
+
+. merge 1:1 neighborhood using acs_merge.dta, gen(_m_acs)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                78  (_m_acs==3)
+    -----------------------------------------
+
+. merge 1:1 neighborhood using shape_merge.dta, gen(_m_shape)
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                             0
+    matched                                78  (_m_shape==3)
+    -----------------------------------------
+
+. 
+. // Use neighborhood lables created in the prep file     
+. * Generate neighborhood labels
+.         label define nh 1 "Athmar Park" 2 "Auraria" 3 "Baker" 4 "Barnum" 5 "Barnum West" 6 "Bear Valley" 7 "Belcaro" ///
+>                 8 "Berkeley" 9 "CBD" 10 "Capitol Hill" 11 "Central Park" 12 "Chaffee Park" 13 "Cheesman Park" ///
+>                 14 "Cherry Creek" 15 "City Park" 16 "City Park West" 17 "Civic Center" 18 "Clayton" 19 "Cole" ///
+>                 20 "College View-South Platte" 21 "Congress Park" 22 "Cory-Merrill" 23 "Country Club" 24 "DIA" ///
+>                 25 "East Colfax" 26 "Elyria Swansea" 27 "Five Points" 28 "Fort Logan" 29 "Gateway-Green Valley Ranch" ///
+>                 30 "Globeville" 31 "Goldsmith" 32 "Hale" 33 "Hampden" 34 "Hampden South" 35 "Harvey Park" 36 "Harvey Park South" ///
+>                 37 "Highland" 38 "Hilltop" 39 "Indian Creek" 40 "Jefferson Park" 41 "Kennedy" 42 "Lincoln Park" ///
+>                 43 "Lowry Field" 44 "Mar Lee" 45 "Marston" 46 "Montbello" 47 "Montclair" 48 "North Capitol Hill" ///
+>                 49 "North Park Hill" 50 "Northeast Park Hill" 51 "Overland" 52 "Platt Park" 53 "Regis" 54 "Rosedale" 55 "Ruby Hill" ///
+>                 56 "Skyland" 57 "Sloan Lake" 58 "South Park Hill" 59 "Southmoor Park" 60 "Speer" 61 "Sun Valley" ///
+>                 62 "Sunnyside" 63 "Union Station" 64 "University" 65 "University Hills" 66 "University Park" ///
+>                 67 "Valverde" 68 "Villa Park" 69 "Virginia Village" 70 "Washington Park" 71 "Washington Park West" ///
+>                 72 "Washington Virginia Vale" 73 "Wellshire" 74 "West Colfax" 75 "West Highland" 76 "Westwood" ///
+>                 77 "Whittier" 78 "Windsor"
+
+.         label values neighborhood nh
+
+. 
+. drop _m*
+
+.         
+. order CAD_nb_key stop_nb_key crime_nb_key arrest_nb_key traffic_nb_key acs_nb_key shape_nb_key neighborhood
+
+. 
+. // Datasets with failed merges
+. list crime_nb_key acs_nb_key shape_nb_key neighborhood 
+
+     +------------------------------------------------------------------------------------------------------------------+
+     |               crime_nb_key                  acs_nb_key   shape_nb_key                               neighborhood |
+     |------------------------------------------------------------------------------------------------------------------|
+  1. |                athmar-park                 Athmar Park   Athmar Park                                 Athmar Park |
+  2. |                    auraria                     Auraria   Auraria                                         Auraria |
+  3. |                      baker                       Baker   Baker                                             Baker |
+  4. |                     barnum                    Barnum     Barnum                                           Barnum |
+  5. |                barnum-west                 Barnum West   Barnum West                                 Barnum West |
+     |------------------------------------------------------------------------------------------------------------------|
+  6. |                bear-valley                 Bear Valley   Bear Valley                                 Bear Valley |
+  7. |                    belcaro                     Belcaro   Belcaro                                         Belcaro |
+  8. |                   berkeley                    Berkeley   Berkeley                                       Berkeley |
+  9. |               capitol-hill                Capitol Hill   Capitol Hill                                        CBD |
+ 10. |                        cbd                        CBD    CBD                                        Capitol Hill |
+     |------------------------------------------------------------------------------------------------------------------|
+ 11. |  Central Park or Stapleton                Chaffee Park   Chaffee Park                               Central Park |
+ 12. |               chaffee-park               Cheesman Park   Cheesman Park                              Chaffee Park |
+ 13. |              cheesman-park                Cherry Creek   Cherry Creek                              Cheesman Park |
+ 14. |               cherry-creek                 City Park     City Park                                  Cherry Creek |
+ 15. |                  city-park              City Park West   City Park West                                City Park |
+     |------------------------------------------------------------------------------------------------------------------|
+ 16. |             city-park-west                Civic Center   Civic Center                             City Park West |
+ 17. |               civic-center                     Clayton   Clayton                                    Civic Center |
+ 18. |                    clayton                        Cole   Cole                                            Clayton |
+ 19. |                       cole   College View/South Platte   College View-South Platte                          Cole |
+ 20. |  college-view-south-platte               Congress Park   Congress Park                 College View-South Platte |
+     |------------------------------------------------------------------------------------------------------------------|
+ 21. |              congress-park                Cory-Merrill   Cory-Merrill                              Congress Park |
+ 22. |               cory-merrill                Country Club   Country Club                               Cory-Merrill |
+ 23. |               country-club                         DIA   DIA                                        Country Club |
+ 24. |                        dia                 East Colfax   East Colfax                                         DIA |
+ 25. |                east-colfax              Elyria Swansea   Elyria Swansea                              East Colfax |
+     |------------------------------------------------------------------------------------------------------------------|
+ 26. |             elyria-swansea                 Five Points   Five Points                              Elyria Swansea |
+ 27. |                five-points                  Fort Logan   Fort Logan                                  Five Points |
+ 28. |                 fort-logan                 Gateway GVR   Gateway-Green Valley Ranch                   Fort Logan |
+ 29. | gateway-green-valley-ranch                  Globeville   Globeville                   Gateway-Green Valley Ranch |
+ 30. |                 globeville                   Goldsmith   Goldsmith                                    Globeville |
+     |------------------------------------------------------------------------------------------------------------------|
+ 31. |                  goldsmith                        Hale   Hale                                          Goldsmith |
+ 32. |                       hale                     Hampden   Hampden                                            Hale |
+ 33. |                    hampden               Hampden South   Hampden South                                   Hampden |
+ 34. |              hampden-south                 Harvey Park   Harvey Park                               Hampden South |
+ 35. |                harvey-park           Harvey Park South   Harvey Park South                           Harvey Park |
+     |------------------------------------------------------------------------------------------------------------------|
+ 36. |          harvey-park-south                    Highland   Highland                              Harvey Park South |
+ 37. |                   highland                     Hilltop   Hilltop                                        Highland |
+ 38. |                    hilltop                Indian Creek   Indian Creek                                    Hilltop |
+ 39. |               indian-creek              Jefferson Park   Jefferson Park                             Indian Creek |
+ 40. |             jefferson-park                     Kennedy   Kennedy                                  Jefferson Park |
+     |------------------------------------------------------------------------------------------------------------------|
+ 41. |                    kennedy                Lincoln Park   Lincoln Park                                    Kennedy |
+ 42. |               lincoln-park                 Lowry Field   Lowry Field                                Lincoln Park |
+ 43. |                lowry-field                     Mar Lee   Mar Lee                                     Lowry Field |
+ 44. |                    mar-lee                     Marston   Marston                                         Mar Lee |
+ 45. |                    marston                   Montbello   Montbello                                       Marston |
+     |------------------------------------------------------------------------------------------------------------------|
+ 46. |                  montbello                   Montclair   Montclair                                     Montbello |
+ 47. |                  montclair          North Capitol hill   North Capitol Hill                            Montclair |
+ 48. |         north-capitol-hill             North Park Hill   North Park Hill                      North Capitol Hill |
+ 49. |            north-park-hill         Northeast Park Hill   Northeast Park Hill                     North Park Hill |
+ 50. |        northeast-park-hill                    Overland   Overland                            Northeast Park Hill |
+     |------------------------------------------------------------------------------------------------------------------|
+ 51. |                   overland                  Platt Park   Platt Park                                     Overland |
+ 52. |                 platt-park                       Regis   Regis                                        Platt Park |
+ 53. |                      regis                    Rosedale   Rosedale                                          Regis |
+ 54. |                   rosedale                   Ruby Hill   Ruby Hill                                      Rosedale |
+ 55. |                  ruby-hill                     Skyland   Skyland                                       Ruby Hill |
+     |------------------------------------------------------------------------------------------------------------------|
+ 56. |                    skyland                 Sloans Lake   Sloan Lake                                      Skyland |
+ 57. |                 sloan-lake             South Park Hill   South Park Hill                              Sloan Lake |
+ 58. |            south-park-hill              Southmoor Park   Southmoor Park                          South Park Hill |
+ 59. |             southmoor-park                       Speer   Speer                                    Southmoor Park |
+ 60. |                      speer                   Stapleton   Central Park                                      Speer |
+     |------------------------------------------------------------------------------------------------------------------|
+ 61. |                 sun-valley                  Sun Valley   Sun Valley                                   Sun Valley |
+ 62. |                  sunnyside                   Sunnyside   Sunnyside                                     Sunnyside |
+ 63. |              union-station               Union Station   Union Station                             Union Station |
+ 64. |                 university                  University   University                                   University |
+ 65. |           university-hills            University Hills   University Hills                       University Hills |
+     |------------------------------------------------------------------------------------------------------------------|
+ 66. |            university-park             University Park   University Park                         University Park |
+ 67. |                   valverde                    Valverde   Valverde                                       Valverde |
+ 68. |                 villa-park                  Villa Park   Villa Park                                   Villa Park |
+ 69. |           virginia-village            Virginia Village   Virginia Village                       Virginia Village |
+ 70. |            washington-park        Washington Park West   Washington Park                         Washington Park |
+     |------------------------------------------------------------------------------------------------------------------|
+ 71. |       washington-park-west             Washington Park   Washington Park West               Washington Park West |
+ 72. |   washington-virginia-vale    Washington Virginia Vale   Washington Virginia Vale       Washington Virginia Vale |
+ 73. |                  wellshire                   Wellshire   Wellshire                                     Wellshire |
+ 74. |                west-colfax                 West Colfax   West Colfax                                 West Colfax |
+ 75. |              west-highland               West Highland   West Highland                             West Highland |
+     |------------------------------------------------------------------------------------------------------------------|
+ 76. |                   westwood                    Westwood   Westwood                                       Westwood |
+ 77. |                   whittier                    Whittier   Whittier                                       Whittier |
+ 78. |                    windsor                     Windsor   Windsor                                         Windsor |
+     +------------------------------------------------------------------------------------------------------------------+
+
+. 
+. // Datasets with ok merges:
+. list CAD_nb_key stop_nb_key arrest_nb_key traffic_nb_key neighborhood
+
+     +--------------------------------------------------------------------------------------------------------------------------------------------------------+
+     |                   CAD_nb_key                    stop_nb_key                  arrest_nb_key                 traffic_nb_key                 neighborhood |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+  1. |                  Athmar Park                    Athmar Park                    Athmar Park                    Athmar Park                  Athmar Park |
+  2. |                      Auraria                        Auraria                        Auraria                        Auraria                      Auraria |
+  3. |                        Baker                          Baker                          Baker                          Baker                        Baker |
+  4. |                       Barnum                         Barnum                         Barnum                         Barnum                       Barnum |
+  5. |                  Barnum West                    Barnum West                    Barnum West                    Barnum West                  Barnum West |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+  6. |                  Bear Valley                    Bear Valley                    Bear Valley                    Bear Valley                  Bear Valley |
+  7. |                      Belcaro                        Belcaro                        Belcaro                        Belcaro                      Belcaro |
+  8. |                     Berkeley                       Berkeley                       Berkeley                       Berkeley                     Berkeley |
+  9. |                          CBD                            CBD                            CBD                            CBD                          CBD |
+ 10. |                 Capitol Hill                   Capitol Hill                   Capitol Hill                   Capitol Hill                 Capitol Hill |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 11. |                 Central Park      Central Park or Stapleton                   Central Park      Central Park or Stapleton                 Central Park |
+ 12. |                 Chaffee Park                   Chaffee Park                   Chaffee Park                   Chaffee Park                 Chaffee Park |
+ 13. |                Cheesman Park                  Cheesman Park                  Cheesman Park                  Cheesman Park                Cheesman Park |
+ 14. |                 Cherry Creek                   Cherry Creek                   Cherry Creek                   Cherry Creek                 Cherry Creek |
+ 15. |                    City Park                      City Park                      City Park                      City Park                    City Park |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 16. |               City Park West                 City Park West                 City Park West                 City Park West               City Park West |
+ 17. |                 Civic Center                   Civic Center                   Civic Center                   Civic Center                 Civic Center |
+ 18. |                      Clayton                        Clayton                        Clayton                        Clayton                      Clayton |
+ 19. |                         Cole                           Cole                           Cole                           Cole                         Cole |
+ 20. |  College View - South Platte    College View - South Platte    College View - South Platte    College View - South Platte    College View-South Platte |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 21. |                Congress Park                  Congress Park                  Congress Park                  Congress Park                Congress Park |
+ 22. |               Cory - Merrill                 Cory - Merrill                 Cory - Merrill                 Cory - Merrill                 Cory-Merrill |
+ 23. |                 Country Club                   Country Club                   Country Club                   Country Club                 Country Club |
+ 24. |                          DIA                            DIA                            DIA                            DIA                          DIA |
+ 25. |                  East Colfax                    East Colfax                    East Colfax                    East Colfax                  East Colfax |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 26. |               Elyria Swansea                 Elyria Swansea                 Elyria Swansea                 Elyria Swansea               Elyria Swansea |
+ 27. |                  Five Points                    Five Points                    Five Points                    Five Points                  Five Points |
+ 28. |                   Fort Logan                     Fort Logan                     Fort Logan                     Fort Logan                   Fort Logan |
+ 29. | Gateway - Green Valley Ranch   Gateway - Green Valley Ranch   Gateway - Green Valley Ranch   Gateway - Green Valley Ranch   Gateway-Green Valley Ranch |
+ 30. |                   Globeville                     Globeville                     Globeville                     Globeville                   Globeville |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 31. |                    Goldsmith                      Goldsmith                      Goldsmith                      Goldsmith                    Goldsmith |
+ 32. |                         Hale                           Hale                           Hale                           Hale                         Hale |
+ 33. |                      Hampden                        Hampden                        Hampden                        Hampden                      Hampden |
+ 34. |                Hampden South                  Hampden South                  Hampden South                  Hampden South                Hampden South |
+ 35. |                  Harvey Park                    Harvey Park                    Harvey Park                    Harvey Park                  Harvey Park |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 36. |            Harvey Park South              Harvey Park South              Harvey Park South              Harvey Park South            Harvey Park South |
+ 37. |                     Highland                       Highland                       Highland                       Highland                     Highland |
+ 38. |                      Hilltop                        Hilltop                        Hilltop                        Hilltop                      Hilltop |
+ 39. |                 Indian Creek                   Indian Creek                   Indian Creek                   Indian Creek                 Indian Creek |
+ 40. |               Jefferson Park                 Jefferson Park                 Jefferson Park                 Jefferson Park               Jefferson Park |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 41. |                      Kennedy                        Kennedy                        Kennedy                        Kennedy                      Kennedy |
+ 42. |                 Lincoln Park                   Lincoln Park                   Lincoln Park                   Lincoln Park                 Lincoln Park |
+ 43. |                  Lowry Field                    Lowry Field                    Lowry Field                    Lowry Field                  Lowry Field |
+ 44. |                      Mar Lee                        Mar Lee                        Mar Lee                        Mar Lee                      Mar Lee |
+ 45. |                      Marston                        Marston                        Marston                        Marston                      Marston |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 46. |                    Montbello                      Montbello                      Montbello                      Montbello                    Montbello |
+ 47. |                    Montclair                      Montclair                      Montclair                      Montclair                    Montclair |
+ 48. |           North Capitol Hill             North Capitol Hill             North Capitol Hill             North Capitol Hill           North Capitol Hill |
+ 49. |              North Park Hill                North Park Hill                North Park Hill                North Park Hill              North Park Hill |
+ 50. |          Northeast Park Hill            Northeast Park Hill            Northeast Park Hill            Northeast Park Hill          Northeast Park Hill |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 51. |                     Overland                       Overland                       Overland                       Overland                     Overland |
+ 52. |                   Platt Park                     Platt Park                     Platt Park                     Platt Park                   Platt Park |
+ 53. |                        Regis                          Regis                          Regis                          Regis                        Regis |
+ 54. |                     Rosedale                       Rosedale                       Rosedale                       Rosedale                     Rosedale |
+ 55. |                    Ruby Hill                      Ruby Hill                      Ruby Hill                      Ruby Hill                    Ruby Hill |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 56. |                      Skyland                        Skyland                        Skyland                        Skyland                      Skyland |
+ 57. |                   Sloan Lake                     Sloan Lake                     Sloan Lake                     Sloan Lake                   Sloan Lake |
+ 58. |              South Park Hill                South Park Hill                South Park Hill                South Park Hill              South Park Hill |
+ 59. |               Southmoor Park                 Southmoor Park                 Southmoor Park                 Southmoor Park               Southmoor Park |
+ 60. |                        Speer                          Speer                          Speer                          Speer                        Speer |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 61. |                   Sun Valley                     Sun Valley                     Sun Valley                     Sun Valley                   Sun Valley |
+ 62. |                    Sunnyside                      Sunnyside                      Sunnyside                      Sunnyside                    Sunnyside |
+ 63. |                Union Station                  Union Station                  Union Station                  Union Station                Union Station |
+ 64. |                   University                     University                     University                     University                   University |
+ 65. |             University Hills               University Hills               University Hills               University Hills             University Hills |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 66. |              University Park                University Park                University Park                University Park              University Park |
+ 67. |                     Valverde                       Valverde                       Valverde                       Valverde                     Valverde |
+ 68. |                   Villa Park                     Villa Park                     Villa Park                     Villa Park                   Villa Park |
+ 69. |             Virginia Village               Virginia Village               Virginia Village               Virginia Village             Virginia Village |
+ 70. |              Washington Park                Washington Park                Washington Park                Washington Park              Washington Park |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 71. |         Washington Park West           Washington Park West           Washington Park West           Washington Park West         Washington Park West |
+ 72. |     Washington Virginia Vale       Washington Virginia Vale       Washington Virginia Vale       Washington Virginia Vale     Washington Virginia Vale |
+ 73. |                    Wellshire                      Wellshire                      Wellshire                      Wellshire                    Wellshire |
+ 74. |                  West Colfax                    West Colfax                    West Colfax                    West Colfax                  West Colfax |
+ 75. |                West Highland                  West Highland                  West Highland                  West Highland                West Highland |
+     |--------------------------------------------------------------------------------------------------------------------------------------------------------|
+ 76. |                     Westwood                       Westwood                       Westwood                       Westwood                     Westwood |
+ 77. |                     Whittier                       Whittier                       Whittier                       Whittier                     Whittier |
+ 78. |                      Windsor                        Windsor                        Windsor                        Windsor                      Windsor |
+     +--------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+.         
+.         
+. save merge_failure_table.dta, replace
+file merge_failure_table.dta saved
+
+. stop 
+unrecognized command:  stop
+r(199);
+
+end of do-file
+
+r(199);
+
+. do "/var/folders/1y/bx6dby812b1_r5vpwpv51ygc0000gn/T//SD41342.000000"
+
+. log close
+      name:  <unnamed>
+       log:  /Users/jkangbrown/Documents/Github/when_police_replication/replication_materials/merge_failure_files/merge_failure_log.log
+  log type:  text
+ closed on:   6 Apr 2024, 11:43:56
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
