@@ -3,22 +3,38 @@ Prep the data for "When police pull back: Neighborhood-level effects of de-polic
 * w/Jessie Huff, Scott Wolfe, David Pyrooz and Scott Mourtgos
 * Written 10/29/21 by JN
 * Last updated 6/27/23 by JN
+* Modified for replication by Jacob Kang-Brown
 *******************************************************************************/
 
 * Set a global that points to the data folder
-global denver ""
+global denver "~/Downloads/replication_materials_data"
 
 * Call up the geocoded CAD data
-	use "$denver\CAD_geocoded.dta", clear
-	
-* Extract from date variable	
+
+/* Work around to use in older version of stata involved opening in R with this
+ code and then saving as CAD_geocoded_stata_old
+
+library(haven)
+CAD_geocoded <- read_dta("~/Downloads/replication_materials_data/CAD_geocoded.dta")
+write_dta(
+  CAD_geocoded,
+  "~/Downloads/replication_materials_data/CAD_geocoded_stata_13.dta",
+  version = 13,
+  label = attr(data, "label"),
+  strl_threshold = 2045,
+	)
+*/
+	use "$denver/CAD_geocoded_stata_13.dta", clear
+
+ 
+/* Extract from date variable	// already done in file posted online
 	gen year = year(date)
 	gen month = month(date)
 	gen week = week(date)
 	gen weekly = wofd(date)
 	
 	drop if year == 2021 // 1 observation
-	
+*/ 		// already done in file posted online
 
 * collapse CAD down to NEIGHBORHOOD WEEK LEVEL (N is 52*5*78 = 20,280) and save a copy that'll be the merged dataset
 * Note we didn't actually end up using this data as we could never confidently identify which calls were citizen v. police-initiated
@@ -28,8 +44,8 @@ global denver ""
 	gen self_cad = 1 if Problem == "Self Initiated Action"
 	gen shotspotter_cad = 1 if Problem == "Shot Spotter"
 	
-	encode nhoodname, gen(neighborhood)
-	
+	encode nbhd_name, gen(neighborhood) // was nhoodname in replication do file
+	// this drops 515,831 rows in this table. 
 	drop if neighborhood == . // N = 263,899 or 8.2% of CAD entries
 	
 	gen nh_week = .
@@ -118,11 +134,14 @@ global denver ""
 	
 	collapse (sum) *cad, by(nh_week)
 	
-	save "$denver\merged_data_for_analysis.dta", replace
+	save "$denver/merged_data_for_analysis.dta", replace
+	// Intermediate save
+	save "$denver/cad_processed.dta", replace
+	use "$denver/cad_processed.dta", clear
 
 *********************************************************************************************************	
 * Import, clean the traffic/pedestrian stop dataset
-	import delimited "$denver\police_pedestrian_stops_and_vehicle_stops.csv", clear
+	import delimited "$denver/police_pedestrian_stops_and_vehicle_stops.csv", clear
 	
 	gen pstop_pdi = 1 if problem == "Subject Stop"
 	gen vstop_pdi = 1 if problem == "Vehicle Stop"
@@ -246,17 +265,22 @@ global denver ""
 
 	collapse (sum) *_pdi, by(nh_week)
 		
-	merge 1:1 nh_week using "$denver\merged_data_for_analysis.dta"
+	merge 1:1 nh_week using "$denver/merged_data_for_analysis.dta"
 	
 * Some nhweeks show up as missing since there weren't stops in some neighborhoods for some weeks (N=993)
 	replace pstop_pdi = 0 if pstop_pdi == .
 	replace vstop_pdi = 0 if vstop_pdi == .
 		
-	save "$denver\merged_data_for_analysis.dta", replace	
+	save "$denver/merged_data_for_analysis.dta", replace	
+	
+	// Intermediate save
+	save "$denver/merged_data_for_analysis_pre_crime.dta", replace	
+	
+	
 
 *********************************************************************************************************
 * Import, clean and merge the reported crimes dataset
-	import delimited "$denver\crime.csv", clear
+	import delimited "$denver/crime.csv", clear
 	
 * Create variables for all the offenses we're interested in
 	gen crime_murder = 1 if offense_category_id == "murder" & offense_type_id != "homicide-police-by-gun"
@@ -390,7 +414,7 @@ global denver ""
 	
 	collapse (sum) crime_*, by(nh_week)
 
-	merge 1:1 nh_week using "$denver\merged_data_for_analysis.dta", gen(_merge2)
+	merge 1:1 nh_week using "$denver/merged_data_for_analysis.dta", gen(_merge2)
 	
 	* Replace missings with zeros (N = 98)
 		local crime "crime_murder crime_rob crime_assault crime_rape crime_VC crime_VC_norape crime_mvt crime_cburg crime_rburg crime_larceny crime_tmv crime_prop crime_weapon crime_assault_cop crime_resist_cop crime_challenge_cop"
@@ -398,13 +422,17 @@ global denver ""
 			replace `i' = 0 if `i' == .
 			}
 	
-	save "$denver\merged_data_for_analysis.dta", replace
+	save "$denver/merged_data_for_analysis.dta", replace
+	
+	// Intermediate save
+	save "$denver/merged_data_for_analysis_pre_arrest.dta", replace
 	
 *********************************************************************************************************
 * Import ARREST data, clean, collapse and merge
-	global arrest "$denver\Arrest_Files"
+	global arrest "$denver/Arrest_Files"
 	
 * There are 5 files, one for each year, 2016-2020. This loop will define the files, generate a temporary "master" file, and import/append each of the data files. 
+/*  This loop did not work for me
 	cd "$arrest"
 	local files: dir "$arrest" files "Arrest*.xlsx"
 	di `"`files'"'
@@ -421,14 +449,41 @@ global denver ""
 			append using `master', force
 			save `master', replace
 	}
+*/
+	
+//  so I opened the files in excel, saved as a CSV and ran this code
+ 
+clear
+	cd "$arrest"
+	local files: dir "$arrest" files "Arrest*.csv"
+	di `"`files'"'
+	tempfile main // generate temporary save file to store data in
+	save `main', replace empty
+	clear
+	foreach x in `files' {
+		di "`x'" // display file name
+		
+		* import each file
+			qui: import delimited "`x'",  case(preserve) clear 
+			qui: gen data_id = subinstr("`x'", ".xlsx", "", .) // generate id variable
+		
+		* append each file to the main file
+			append using `main', force
+			save `main', replace
+	}
+	
 	
 	order data_id, first
 	
+	gen ArrestDate_coded =  daily(ArrestDate, "MDY", 2050)
+	drop ArrestDate 
+	clonevar ArrestDate = ArrestDate_coded
+	
 	drop if ArrestDate == . // each file had a bunch of blank rows at the bottom
 	
-	save "$denver\Arrest_data_merged.dta", replace
+	save "$denver/Arrest_data_merged.dta", replace
 	
-	use "$denver\Arrest_data_merged.dta", clear
+	use "$denver/Arrest_data_merged.dta", clear
 	
 	gen year = year(ArrestDate)
 	gen month = month(ArrestDate)
@@ -547,7 +602,7 @@ global denver ""
 	
 	collapse (sum) arrest*, by(nh_week)
 	
-	merge 1:1 nh_week using "$denver\merged_data_for_analysis.dta", gen(_merge3)
+	merge 1:1 nh_week using "$denver/merged_data_for_analysis.dta", gen(_merge3)
 	
 * Replace missings with zeros (N = 1483)
 	local arrest "arrest arrest_agg_assault arrest_simp_assault arrest_robbery arrest_murder arrest_rape arrest_violent arrest_drug arrest_disorder arrest_mvt arrest_weapon arrest_flee arrest_rburg arrest_cburg arrest_larceny"
@@ -555,12 +610,15 @@ global denver ""
 		replace `i' = 0 if `i' == .
 		}
 	
-	save "$denver\merged_data_for_analysis.dta", replace
+	save "$denver/merged_data_for_analysis.dta", replace
+	
+	// Intermediate Save
+	save "$denver/merged_data_for_analysis_pre_traffic.dta", replace
 	
 	
 *********************************************************************************************************
 * Import traffic accident data, clean, collapse and merge
-	import delimited "$denver\traffic_accidents.csv", clear
+	import delimited "$denver/traffic_accidents.csv", clear
 	
 *Clean up the Date Variable
 	gen date_str = word(first_occurrence_date, 1)
@@ -688,7 +746,7 @@ global denver ""
 	replace month = round(month)
 	
 * Merge & save
-	merge 1:1 nh_week using "$denver\merged_data_for_analysis.dta", gen(_merge4)
+	merge 1:1 nh_week using "$denver/merged_data_for_analysis.dta", gen(_merge4)
 	
 	* Replace missings with zeros (N = 1545)
 		local traffic "accident accident_dui accident_fatal accident_hitrun accident_police accident_sbi"
@@ -699,7 +757,7 @@ global denver ""
 	sort nh_week
 	order nh_week neighborhood week weekly month year // still need to go back and replace missing values on these variables
 	
-	save "$denver\merged_data_for_analysis.dta", replace
+	save "$denver/merged_data_for_analysis.dta", replace
 	
 * Vars to fix: neighborhood week weekly month year (JH)
 
@@ -800,12 +858,152 @@ global denver ""
 	tab neighborhood if neighborhood_key == "East Colfax", nolabel // 25
 	tab neighborhood if neighborhood_key == "Northeast Park Hill", nolabel // 50
 	tab neighborhood if neighborhood_key == "Montbello", nolabel  // 46
+	
+*** Save was missing -- added a line here:
+ 	save "$denver/merged_data_for_analysis.dta", replace
+	save "$denver/merged_data_for_analysis_pre_aqi.dta", replace
 
+/* Data was missing on precipitation, AQI, and open table reservations that is
+ needed for replication. Presumably they would have been added here and used to 
+ create tables used to create _merge5, _merge6, _merge7. I've added those data.
+ 
+*/  
+
+
+
+global original_data_collection "~/Documents/Github/when_police_replication/original_data_collection"
+	
+	
+	** AQI. 
+	** Steps taken to make this file: go here
+	** https://aqs.epa.gov/aqsweb/airdata/download_files.html#AQI
+	** download the data for Daily AQI
+	** DAILY AQI by County_ YYYY
+	** download and process here
+
+	clear
+	global AQI "$original_data_collection/AQI"
+	cd "$AQI"
+	local files: dir "$AQI" files "daily_aqi_by*.csv"
+	di `"`files'"'
+	tempfile main // generate temporary save file to store data in
+	save `main', replace empty
+	clear
+	foreach x in `files' {
+		di "`x'" // display file name
+		
+		* import each file
+			qui: import delimited "`x'",  case(lower) clear 
+			qui: keep if countyname == "Denver"
+			qui: gen data_id = subinstr("`x'", ".csv", "", .) // generate id variable
+		
+		* append each file to the master file
+			append using `main', force
+			save `main', replace
+	}
+	
+	gen dd = date(date, "YMD")
+	gen year = year(dd)
+	gen month = month(dd)
+	gen weekly = wofd(dd)
+	
+	collapse (mean) aqi, by(weekly)
+	rename aqi AQI
+	save "$denver/aqi.dta", replace
+	
+ 
+	** OPEN TABLE **********
+	** steps taken to make this file: 
+	** 1 navigate to the Open Table website in the Internet Archive
+	**  https://web.archive.org/web/20210102090417/https://www.opentable.com/state-of-industry
+	** 2 Under "Seated diners from online, phone, and walk-in reservations" click drop down for city
+	** 3 click "download dataset", open table data set YoY_Seated_Diner_Data.csv
+	** 4 open in plain text editor and manipulate first row to add "2020" year to date,
+	*** then transpose, and keep only Denver. 
+	
+	cd "$original_data_collection"
+	
+	 import delimited "$original_data_collection/open_table/YoY_Seated_Diner_Data_clean.csv", case(lower) clear
+	 keep table_date open_table
+	 
+	gen dd = date(table_date, "YMD")
+	gen weekly = wofd(dd)
+	collapse (mean) open_table, by(weekly)
+	
+	save "$denver/open_table.dta", replace
+	
+	*** PRECIPITATION / TEMPERATURE
+		
+	/*
+	Downloaded from here: 
+		
+	https://www.ncei.noaa.gov/cdo-web/review
+	https://www.ncei.noaa.gov/cdo-web/search
+
+		
+	Dataset	Daily Summaries
+	Order Start Date	2016-01-01 00:00
+	Order End Date	2020-12-31 23:59
+	Output Format	Custom GHCN-Daily CSV
+	Data Types	PRCP, SNWD, SNOW, TAVG, TMAX, TMIN
+	Custom Flag(s)	Station Name
+	Units	Standard
+	Stations/Locations	Denver County, CO (Location ID: FIPS:08031)
+
+
+	*/
+
+	cd "$original_data_collection"
+	
+	import delimited "$original_data_collection/weather/3645978.csv", clear case(lower)
+	keep if name == "DENVER INTERNATIONAL AIRPORT, CO US" 
+	
+	gen dd = date(date, "YMD")
+	/*One wrinkle: Avg Temp is missing for the entire month of Feb 2020 from the dataset. 
+	No other stations in Denver have tavg data, only DIA. 
+	No stations in nearby Arapahoe County (Aurora).  
+	So create a simple estimate using the available data -- including leading and lagging temps 
+	for two days. This appears to produce plausible estimates. Given the data is pre-pandemic,
+	seems unlikely to have a major impact. */
+	
+	tsset dd
+	reg tavg tmin tmax l.tmin l.tmax  l2.tmin l2.tmax   f.tmin f.tmax  f2.tmin f2.tmax
+	predict tavg_model
+	replace tavg = tavg_model if tavg ==. 
+	
+	gen weekly = wofd(dd)
+	collapse (mean) prcp snow snwd tavg tmax tmin, by(weekly)
+	
+	save "$denver/weather.dta", replace
+	
+// DATASETS
+use "$denver/merged_data_for_analysis.dta", clear
+
+merge m:1 weekly using "$denver/aqi.dta", gen(_merge5)
+
+merge m:1 weekly using "$denver/open_table.dta", gen(_merge6)
+
+merge m:1 weekly using "$denver/weather.dta", gen(_merge7)
+
+// Intermediate save
+	save "$denver/merged_data_for_analysis.dta", replace
+	
+	save "$denver/merged_data_for_analysis_pre_acs.dta", replace
+	use  "$denver/merged_data_for_analysis_pre_acs.dta", replace
+ 
+	
 *********************************************************************************************************	
 * Merge in the neighborhood-level 2014-18 ACS 5-year estimates
-preserve
-	import excel "$denver\2014-2018 ACS 5 Year Estimates Denver.xlsx", sheet("NBHD") firstrow clear
+*preserve
+// Made an alternate excel that has inserted a colum to right of "Neighborhood", nameed "neighborhood" and given it an ascending code, 1-78
+	import excel "$denver/alt_2014-2018 ACS 5 Year Estimates Denver.xlsx", sheet("NBHD") firstrow clear
+	
+	* This code did not make sense coming from the source file:
+	* there was no field "neighborhood" and there was one for "Neighborhood" 
+	* but it was a string. So the import process would produce a string variable, not a numeric variable.
+	* drop if neighborhood == . // drop 63 blank rows
 	drop if neighborhood == . // drop 63 blank rows
+
 	
 	* Clean up these variable names
 		rename EstimateRACETotalpopulation total_pop
@@ -878,12 +1076,14 @@ preserve
 	* Create a %15-24 variable
 		gen pct_15to24 = pct_15to19 + pct_20to24
 		
-	save "$denver\ACS_5-Year_Estimates.dta", replace
-restore
+	save "$denver/ACS_5-Year_Estimates.dta", replace
+*restore
 
-	merge m:1 neighborhood using "$denver\ACS_5-Year_Estimates.dta", gen(_merge8)	
+	use "$denver/merged_data_for_analysis.dta", clear
+	merge m:1 neighborhood using "$denver/ACS_5-Year_Estimates.dta", gen(_merge8)	
 	
-	save "$denver\merged_data_for_analysis.dta", replace
+	save "$denver/merged_data_for_analysis.dta", replace
+	save "$denver/post_acs_merged_data_for_analysis.dta", replace
 	
 *********************************************************************************************************
 * CREATE THE VARIABLES
@@ -1143,4 +1343,7 @@ restore
 	
 	
 * Save and move on to the analysis R script or figure .do file
-	save "$denver\merged_data_for_analysis.dta", replace
+	save "$denver/merged_data_for_analysis.dta", replace
+	
+	
+	save "$denver/combined_dataset.dta", replace
