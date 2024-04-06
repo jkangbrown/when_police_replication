@@ -995,7 +995,14 @@ merge m:1 weekly using "$denver/weather.dta", gen(_merge7)
 *********************************************************************************************************	
 * Merge in the neighborhood-level 2014-18 ACS 5-year estimates
 *preserve
-// Made an alternate excel that has inserted a colum to right of "Neighborhood", nameed "neighborhood" and given it an ascending code, 1-78
+// For replication purpose, made an alternate excel that was identical to source data except for one change:
+//  I created a new colum directly to the right of "Neighborhood", named "neighborhood" and given it an ascending code, 1-78. 
+//  This is the only way to make the import code in the file work. It expects a numeric variable
+//  named neighborhood. It expects that the 5th column with a 60-character-long field name in the first row,
+//  "Percent Estimate!!RACE!!Total population!!Two or more races"  will be renamed by Stata to "F" during import. 
+//  Further, variable processing code later in the file expects empty values at neighborhood = 40 and  neighborhood = 61 for the 
+//  Median house value field. Adding a numeric neighborhood field solves for those varied problems and allows 
+//  the replication code to run as-is.  
 	import excel "$denver/alt_2014-2018 ACS 5 Year Estimates Denver.xlsx", sheet("NBHD") firstrow clear
 	
 	* This code did not make sense coming from the source file:
