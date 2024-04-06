@@ -6,13 +6,13 @@ Reproduce figures in "When police pull back: Neighborhood-level effects of de-po
 *******************************************************************************/
 
 * Set global that points to where the merged data file is
-	global denver ""
+	global denver "~/Downloads/replication_materials_data"
 	
 * Set global to store the figures
-	global figures ""
+	global figures "~/Downloads/replication_materials_data/figures"
 	
 * Call up the merged data file
-	use "$denver\merged_data_for_analysis.dta", clear
+	use "$denver/merged_data_for_analysis.dta", clear
 	
 	
 * Figure 1: Weekly deviations in crime and police discretionary activity at neighborhood level	
@@ -680,6 +680,20 @@ twoway line property_wgt_avg_3wk_dev week if year == 2020 & neighborhood == 1, l
 
 		gen nh_vio_dev = violent_cum20 - w_violent_cum_avg
 		gen nh_prop_dev = property_cum20 - w_property_cum_avg
+		
+		/*
+		
+list if neighborhood ==9, clean
+
+       neighb~d   w_viol~g   w_prop~g   viole~20   prope~20   nh_vio~v   nh_pro~v  
+  9.        CBD      148.9      826.2        174       1166   25.10001      339.8  
+
+list if neighborhood == 10, clean 		
+		neighborhood   w_viol~g   w_prop~g   viole~20   prope~20   nh_vio~v   nh_pro~v  
+ 10.   Capitol Hill      140.3      927.2        180        936       39.7   8.799988  
+
+
+		*/
 		
 		sum nh_vio_dev, detail
 		sum nh_prop_dev, detail
