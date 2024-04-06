@@ -1,6 +1,13 @@
 library(sf); library(spdep); library(tmap)
+library(haven)
+setwd("~/Documents/GitHub/when_police_replication")
 
-s = st_read("neighborhoods.shp")
+# Add a load command for the Stata data
+
+data <- read_dta("~/Downloads/replication_materials_data/merged_data_for_analysis.dta")
+
+# Point to a complete shape file:  
+s = st_read("original_data_collection/statistical_neighborhoods/statistical_neighborhoods.shp")
 names(s)
 names(data)
 data2 = dplyr::select(data,
@@ -69,4 +76,4 @@ colnames(lag.res.m) = c("NBHD_ID", "lag mvt (queen)")
 head(lag.res.m)
 data = cbind(data, lag.res.m)
 
-save(data, file="data_resubmit.RData")
+save(data, file="~/Downloads/replication_materials_data/replication_data_resubmit.RData")

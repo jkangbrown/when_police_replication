@@ -9,12 +9,13 @@ library(car)
 options(scipen = 999)
 
 #open data
-setwd ("INSERT YOUR DIRECTORY HERE")
+setwd ("~/Downloads/replication_materials_data/")
 
 #note: code to create the R dataset from the Stata file and calculate spatial 
 #      weights available from the authors
 load("data.RData")
 
+load("replication_data_resubmit.RData")
 #######################################################################################
 
 
