@@ -1175,11 +1175,11 @@ Average $366,383
 	pwcorr total_pop pct_15to24 pct_black pct_hispanic_any pct_poverty median_hh_income pct_own pct_bachelors_higher, star(.05)
 	
 	
-/* Save and move on to the analysis R script or figure .do file
+* Save and move on to the analysis R script or figure .do file
 	save "$denver/merged_data_for_reanalysis.dta", replace
 	
 	
-	save "$denver/combined_reanalysisdataset.dta", replace
+	save "$denver/combined_reanalysis_data.dta", replace
 
 	
 	
