@@ -20,12 +20,7 @@ data <- load("reanalysis.RDS")
 
 #######################################################################################
 
-## TK  - need to pick up here, but these are the models that show no effect when using the 
-## modified data that has a correct merge, correct weights, etc. 
-## Still need to tweak to be reanalysis with broader outcome / violent measure variables 
-## Also need to tweak to use different mediator variable -- broken windows policing properly
-## specified, broader definition of drug arrests, etc.
-## 
+
 
 #TABLE 1. MAIN TEXT
 #PANEL 1 - OLS - MEDIATOR DEVIATIONS AS OUTCOMES

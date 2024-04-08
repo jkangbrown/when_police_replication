@@ -52,6 +52,8 @@ lw = nb2listw(nb, style="W", zero.policy = T)
 # save out
 saveRDS(nb,file ="nb.RDS")
 
+nb <- read_rds( file = "nb.RDS")
+
 
 #Moran's I
 moran_v = moran(shape$violent, lw, length(nb), Szero(lw))[1]
