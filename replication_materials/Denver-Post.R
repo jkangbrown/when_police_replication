@@ -4,6 +4,7 @@
 library (Matrix); library (lme4); library (performance); library (lmerTest)
 library (sjstats); library (stargazer); library (tidyverse); library("Hmisc")
 library(car)
+library(stargazer)
 
 #get rid of scientific notation
 options(scipen = 999)
@@ -13,9 +14,10 @@ setwd ("~/Downloads/replication_materials_data/")
 
 #note: code to create the R dataset from the Stata file and calculate spatial 
 #      weights available from the authors
-load("data.RData")
+# load("data.RData")
 
-load("replication_data_resubmit.RData")
+data <- read_rds(file="~/Downloads/replication_materials_data/replication_with_merge_failure.RDS")
+
 #######################################################################################
 
 
@@ -180,11 +182,148 @@ AIC(property_periods_conf_disarrest_nb_w)
 logLik(property_periods_conf_disarrest_nb_w, REML = F)
 #END OF MAIN MODELS############################################################################################################################
 
+# Produce output tables demonstrating the published results rely on failed matches
+
+## make a short name version of results, and change the class of object to work with table output
+s51 <- pstop_confounders
+s52 <- vstop_confounders
+s53 <- darrest_confounders
+s54 <- disarrest_confounders
+
+class(s51) <- "lmerMod"
+class(s52) <- "lmerMod"
+class(s53) <- "lmerMod"
+class(s54) <- "lmerMod"
+
+s61 <- violent_periods_conf_nb_w
+s62 <- violent_periods_conf_pstop_nb_w
+s63 <- violent_periods_conf_vstop_nb_w
+s64 <- violent_periods_conf_darrest_nb_w
+s65 <- violent_periods_conf_disarrest_nb_w
+
+class(s61) <- "lmerMod"
+class(s62) <- "lmerMod"
+class(s63) <- "lmerMod"
+class(s64) <- "lmerMod"
+class(s65) <- "lmerMod"
+
+s71 <- property_periods_conf_nb_w
+s72 <- property_periods_conf_pstop_nb_w
+s73 <- property_periods_conf_vstop_nb_w
+s74 <- property_periods_conf_darrest_nb_w
+s75 <- property_periods_conf_disarrest_nb_w
+
+class(s71) <- "lmerMod"
+class(s72) <- "lmerMod"
+class(s73) <- "lmerMod"
+class(s74) <- "lmerMod"
+class(s75) <- "lmerMod"
+
+# Put in github as plain text 
+setwd ("~/Documents/Github/when_police_replication/replication_materials/replication_output")
+pstop_confounders
+vstop_confounders
+darrest_confounders
+disarrest_confounders
+
+violent_periods_conf_nb_w
+violent_periods_conf_pstop_nb_w
+violent_periods_conf_vstop_nb_w
+violent_periods_conf_darrest_nb_w
+violent_periods_conf_disarrest_nb_w
+
+property_periods_conf_nb_w
+property_periods_conf_pstop_nb_w
+property_periods_conf_vstop_nb_w
+property_periods_conf_darrest_nb_w
+property_periods_conf_disarrest_nb_w
+
+# pstop_confounders, vstop_confounders, darrest_confounders, disarrest_confounders
 
 
+# Put in github as plain text 
+setwd ("~/Documents/Github/when_police_replication/replication_materials/replication_output")
 
 
+stargazer(s51, s52, s53, s54,  type="text",
+          dep.var.labels=c("Pedestrian stops", "Vehicle stops", "Drug arrests", "Disorder arrests"),
+          covariate.labels=c("COVID-19 period", "Floyd period", "Motor vehicle accidents", 
+                             "Total population", "Disadvantage", "% Black", "% Hispanic", "Immigration", 
+                             "Precipitation", "Temperature", "AQI", "OpenTable"),
+          initial.zero = FALSE, 
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          model.numbers = FALSE,
+          title = "Table TK. Replication of Table S5 with Merge Failure",
+          out = "s5_replication_merge_fail.txt")
 
+stargazer(s61, s62, s63, s64, s65,  type="text",
+          dep.var.labels=c("Periods only", "Mediator: Pedestrian stops", "Mediator: Vehicle stops", "Mediator: Drug arrests", "Mediator: Disorder arrests"),
+          initial.zero = FALSE, 
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          model.numbers = FALSE,
+          covariate.labels=c("COVID-19 period", "Floyd period", 
+                             "Pedestrian stops", "Vehicle stops", "Drug arrests", "Disorder arrests",
+                             "Motor vehicle accidents", 
+                             "Total population", "Disadvantage", "% Black", "% Hispanic", "Immigration", 
+                             "Precipitation", "Temperature", "AQI", "OpenTable", "Spatial lag"),
+          title = "Table TK. Replication of Table S6 Violent crime with Merge Failure",
+          out = "s6_replication_merge_fail.txt")
+
+
+stargazer(s71, s72, s73, s74, s75,  type="text",
+          dep.var.labels=c("Periods only", "Mediator: Pedestrian stops", "Mediator: Vehicle stops", "Mediator: Drug arrests", "Mediator: Disorder arrests"),
+          initial.zero = FALSE, 
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          model.numbers = FALSE,
+          covariate.labels=c("COVID-19 period", "Floyd period", 
+                             "Pedestrian stops", "Vehicle stops", "Drug arrests", "Disorder arrests",
+                             "Motor vehicle accidents", 
+                             "Total population", "Disadvantage", "% Black", "% Hispanic", "Immigration", 
+                             "Precipitation", "Temperature", "AQI", "OpenTable", "Spatial lag"),
+          title = "Table TK. Replication of Table S7 - Property crime with Merge Failure",
+          out = "s7_replication_merge_fail.txt")
+
+
+# switch to HTML and save locally to work with as doc
+setwd ("~/Downloads/replication_materials_data/")
+
+stargazer(s51, s52, s53, s54,  type="html",
+          dep.var.labels=c("Pedestrian stops", "Vehicle stops", "Drug arrests", "Disorder arrests"),
+          covariate.labels=c("COVID-19 period", "Floyd period", "Motor vehicle accidents", 
+                             "Total population", "Disadvantage", "% Black", "% Hispanic", "Immigration", 
+                             "Precipitation", "Temperature", "AQI", "OpenTable"),
+          initial.zero = FALSE, 
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          model.numbers = FALSE,
+          title = "Table TK. Replication of Table S5 with Merge Failure",
+          out = "s5_replication_merge_fail.htm")
+
+stargazer(s61, s62, s63, s64, s65,  type="html",
+          dep.var.labels=c("Periods only", "Mediator: Pedestrian stops", "Mediator: Vehicle stops", "Mediator: Drug arrests", "Mediator: Disorder arrests"),
+          initial.zero = FALSE, 
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          model.numbers = FALSE,
+          covariate.labels=c("COVID-19 period", "Floyd period", 
+                             "Pedestrian stops", "Vehicle stops", "Drug arrests", "Disorder arrests",
+                             "Motor vehicle accidents", 
+                             "Total population", "Disadvantage", "% Black", "% Hispanic", "Immigration", 
+                             "Precipitation", "Temperature", "AQI", "OpenTable", "Spatial lag"),
+          title = "Table TK. Replication of Table S6 Violent crime without Merge Failure",
+          out = "s6_replication_merge_fail.htm")
+
+
+stargazer(s71, s72, s73, s74, s75,  type="html",
+          dep.var.labels=c("Periods only", "Mediator: Pedestrian stops", "Mediator: Vehicle stops", "Mediator: Drug arrests", "Mediator: Disorder arrests"),
+          initial.zero = FALSE, 
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          model.numbers = FALSE,
+          covariate.labels=c("COVID-19 period", "Floyd period", 
+                             "Pedestrian stops", "Vehicle stops", "Drug arrests", "Disorder arrests",
+                             "Motor vehicle accidents", 
+                             "Total population", "Disadvantage", "% Black", "% Hispanic", "Immigration", 
+                             "Precipitation", "Temperature", "AQI", "OpenTable", "Spatial lag"),
+          title = "Table TK. Replication of Table S7 - Property crime with Merge Failure",
+          out = "s7_replication_merge_fail.htm")
 
 
 

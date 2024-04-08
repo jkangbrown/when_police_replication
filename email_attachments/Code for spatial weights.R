@@ -1,5 +1,7 @@
 library(sf); library(spdep); library(tmap)
 library(haven)
+library(readr)
+
 setwd("~/Documents/GitHub/when_police_replication")
 
 # Add a load command for the Stata data
@@ -77,3 +79,5 @@ head(lag.res.m)
 data = cbind(data, lag.res.m)
 
 save(data, file="~/Downloads/replication_materials_data/replication_data_resubmit.RData")
+
+write_rds(data, file="~/Downloads/replication_materials_data/replication_with_merge_failure.RDS")
