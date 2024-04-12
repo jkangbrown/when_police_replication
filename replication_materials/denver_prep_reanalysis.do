@@ -85,7 +85,7 @@ save "$denver/merged_data_for_reanalysis.dta", replace
 	gen crime_burglary = 1 if offense_category_id == "burglary" 
 	
 	** add general sexual assualt							
-	gen crime_sexual_aslt = 1 if offense_category_id == "sexual_assault"	
+	gen crime_sexual_aslt = 1 if offense_category_id == "sexual-assault"	
 	
 	** Add simple assault following common definitions
 	gen crime_simp_aslt = 0 
@@ -1161,7 +1161,8 @@ Average $366,383
 		
 
 * DESCRIPTIVE STATS: Weighted average, unweighted average, 2019 only
-	sum violent property $mediators $controls if year == 2020
+	sum violent property cr_vcn cr_vcns $mediators $controls if year == 2020
+	sum violent property cr_vcn cr_vcns  cr_vca $mediators $controls if year == 2020
 	
 	sum violent property $alt_outcomes if year == 2020
 	sum $mediators $alt_mediators if year == 2020
@@ -1180,6 +1181,7 @@ Average $366,383
 	
 	
 	save "$denver/combined_reanalysis_data.dta", replace
+	use  "$denver/combined_reanalysis_data.dta", clear
 
 	
 	

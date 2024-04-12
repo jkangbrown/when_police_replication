@@ -18,6 +18,8 @@ load("data.RData")
 
 data <- load("reanalysis.RDS")
 
+data <- read_rds(file="~/Downloads/replication_materials_data/reanalysis.RDS")
+
 #######################################################################################
 
 
@@ -377,7 +379,7 @@ logLik(ar_dis_nofta_confounders, REML = F)
 
 ###PERIODS + CONFROUNDERS W/ VCS
 cr_vcn_periods_conf_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
-                                        accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcn_lag + 
+                                        accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + `lag cr_vcn (queen)` + 
                                         (1 + period2 + period3|neighborhood), 
                                       data=data, nAGQ = 0)
 summary(cr_vcn_periods_conf_nb_w)
@@ -388,7 +390,7 @@ logLik(cr_vcn_periods_conf_nb_w, REML = F)
 ###PERIODS + CONFOUNDERS + PSTOPS W/ VC Narrow but full aggravated assault category
 cr_vcn_periods_conf_pstop_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
                                               pstop_wgt_avg_3wk_dev +
-                                              accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcn_lag +
+                                              accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + `lag cr_vcn (queen)` +
                                               (1 + period2 + period3 + pstop_wgt_avg_3wk_dev|neighborhood), 
                                             data=data, family=poisson, nAGQ = 0)
 summary(cr_vcn_periods_conf_pstop_nb_w)
@@ -399,7 +401,7 @@ logLik(cr_vcn_periods_conf_pstop_nb_w, REML = F)
 ###PERIODS + CONFOUNDERS + VSTOPS W/ VCS
 cr_vcn_periods_conf_vstop_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
                                               vstop_wgt_avg_3wk_dev +
-                                              accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcn_lag +
+                                              accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + `lag cr_vcn (queen)` +
                                               (1 + period2 + period3 + vstop_wgt_avg_3wk_dev|neighborhood), 
                                             data=data, family=poisson, nAGQ = 0)
 summary(cr_vcn_periods_conf_vstop_nb_w)
@@ -410,7 +412,7 @@ logLik(cr_vcn_periods_conf_vstop_nb_w, REML = F)
 ###PERIODS + CONFOUNDERS + DARRESTS W/ VCS
 cr_vcn_periods_conf_ar_da_dui_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
                                                ar_da_dui_wgt_avg_3wk_dev +
-                                                accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcn_lag +
+                                                accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + `lag cr_vcn (queen)` +
                                                 (1 + period2 + period3 + ar_da_dui_wgt_avg_3wk_dev|neighborhood), 
                                               data=data, family=poisson, nAGQ = 0)
 summary(cr_vcn_periods_conf_ar_da_dui_nb_w)
@@ -421,7 +423,7 @@ logLik(cr_vcn_periods_conf_ar_da_dui_nb_w, REML = F)
 ###PERIODS + CONFOUNDERS + W/ Narrow Violent Crime, broader disorder
 cr_vcn_periods_conf_ar_dis_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
                                                 ar_dis_wgt_avg_3wk_dev +
-                                                  accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcn_lag +
+                                                  accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + `lag cr_vcn (queen)` +
                                                   (1 + period2 + period3 + ar_dis_wgt_avg_3wk_dev|neighborhood), 
                                                 data=data, family=poisson, nAGQ = 0)
 summary(cr_vcn_periods_conf_ar_dis_nb_w)
@@ -432,7 +434,7 @@ logLik(cr_vcn_periods_conf_ar_dis_nb_w, REML = F)
 ###PERIODS + CONFOUNDERS + W/ Narrow Violent Crime, broader disorder no FTA
 cr_vcn_periods_conf_ar_dis_nofta_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
                                               ar_dis_nofta_wgt_avg_3wk_dev +
-                                              accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcn_lag +
+                                              accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + `lag cr_vcn (queen)` +
                                               (1 + period2 + period3 + ar_dis_nofta_wgt_avg_3wk_dev|neighborhood), 
                                             data=data, family=poisson, nAGQ = 0)
 summary(cr_vcn_periods_conf_ar_dis_nofta_nb_w)
@@ -559,27 +561,27 @@ class(vcn_66) <- "lmerMod"
 
 
 # Put in github as plain text 
-setwd ("~/Documents/Github/when_police_replication/replication_materials/reanalysis_output")
+setwd ("~/Downloads/replication_materials_data/")
 
-stargazer(vcn_61, vcn_62, vcn_63, vcn_64, vcn_65, vcn_66,  type="text",
+stargazer(vcn_61, vcn_62, vcn_63, vcn_64, vcn_65, vcn_66,  type="html",
           dep.var.labels=c("Periods only", "Pedestrian stops", "Vehicle stops", "Drug/Alc and DUI arrests", "Recoded Disorder arrests", "Recoded Disorder (No FTA)"),
           initial.zero = FALSE, 
           star.cutoffs = c(0.05, 0.01, 0.001),
           model.numbers = FALSE,
           covariate.labels=c("COVID-19 period", "Floyd period", 
-                             "Pedestrian stops", "Vehicle stops", "Drug/Alc, & DUI arrests", "Re-Disorder arrests","Re-Disorder arrests no FTA",
+                             "Pedestrian stops", "Vehicle stops", "Drug/Alc, and DUI arrests", "Re-Disorder arrests","Re-Disorder arrests no FTA",
                              "Motor vehicle accidents", 
                              "Total population", "Disadvantage", "% Black", "% Hispanic", "Immigration", 
                              "Precipitation", "Temperature", "AQI", "OpenTable", "Spatial lag"),
           title = "Table TK. Reanalysis of Table S6 using corrected violent crime metric",
-          out = "s6_reanalysis_new_vars_vcn.txt")
+          out = "s6_reanalysis_new_vars_vcn.htm")
 
 
 #PANEL 2 - NEGATIVE BINOMIAL - VIOLENCE COUNTS DIRECT EFFECTS###########################################################################################
 
 ###PERIODS + CONFROUNDERS W/ VCS
 cr_vcns_periods_conf_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
-                                        accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcns_lag + 
+                                        accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + `lag cr_vcns (queen)` + 
                                         (1 + period2 + period3|neighborhood), 
                                       data=data, nAGQ = 0)
 summary(cr_vcns_periods_conf_nb_w)
@@ -590,7 +592,7 @@ logLik(cr_vcns_periods_conf_nb_w, REML = F)
 ###PERIODS + CONFOUNDERS + PSTOPS W/ VC Broad but full aggravated assault category
 cr_vcns_periods_conf_pstop_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
                                               pstop_wgt_avg_3wk_dev +
-                                              accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcns_lag +
+                                              accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table +  `lag cr_vcns (queen)` +
                                               (1 + period2 + period3 + pstop_wgt_avg_3wk_dev|neighborhood), 
                                             data=data, family=poisson, nAGQ = 0)
 summary(cr_vcns_periods_conf_pstop_nb_w)
@@ -601,7 +603,7 @@ logLik(cr_vcns_periods_conf_pstop_nb_w, REML = F)
 ###PERIODS + CONFOUNDERS + VSTOPS W/ VCS
 cr_vcns_periods_conf_vstop_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
                                               vstop_wgt_avg_3wk_dev +
-                                              accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcns_lag +
+                                              accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table +  `lag cr_vcns (queen)` +
                                               (1 + period2 + period3 + vstop_wgt_avg_3wk_dev|neighborhood), 
                                             data=data, family=poisson, nAGQ = 0)
 summary(cr_vcns_periods_conf_vstop_nb_w)
@@ -612,7 +614,7 @@ logLik(cr_vcns_periods_conf_vstop_nb_w, REML = F)
 ###PERIODS + CONFOUNDERS + DARRESTS W/ VCS
 cr_vcns_periods_conf_ar_da_dui_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
                                                   ar_da_dui_wgt_avg_3wk_dev +
-                                                  accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcns_lag +
+                                                  accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table +  `lag cr_vcns (queen)` +
                                                   (1 + period2 + period3 + ar_da_dui_wgt_avg_3wk_dev|neighborhood), 
                                                 data=data, family=poisson, nAGQ = 0)
 summary(cr_vcns_periods_conf_ar_da_dui_nb_w)
@@ -623,7 +625,7 @@ logLik(cr_vcns_periods_conf_ar_da_dui_nb_w, REML = F)
 ###PERIODS + CONFOUNDERS + W/ Broad Violent Crime, broader disorder
 cr_vcns_periods_conf_ar_dis_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
                                                ar_dis_wgt_avg_3wk_dev +
-                                               accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcns_lag +
+                                               accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table +  `lag cr_vcns (queen)` +
                                                (1 + period2 + period3 + ar_dis_wgt_avg_3wk_dev|neighborhood), 
                                              data=data, family=poisson, nAGQ = 0)
 summary(cr_vcns_periods_conf_ar_dis_nb_w)
@@ -634,7 +636,7 @@ logLik(cr_vcns_periods_conf_ar_dis_nb_w, REML = F)
 ###PERIODS + CONFOUNDERS + W/ Broad Violent Crime, broader disorder no FTA
 cr_vcns_periods_conf_ar_dis_nofta_nb_w = glmer.nb (cr_vcn ~ period2 + period3 + 
                                                      ar_dis_nofta_wgt_avg_3wk_dev +
-                                                     accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table + cr_vcns_lag +
+                                                     accident + total_pop + disadvantage + pct_black + pct_hispanic_any + immigration + prcp + tavg + AQI + open_table +  `lag cr_vcns (queen)` +
                                                      (1 + period2 + period3 + ar_dis_nofta_wgt_avg_3wk_dev|neighborhood), 
                                                    data=data, family=poisson, nAGQ = 0)
 summary(cr_vcns_periods_conf_ar_dis_nofta_nb_w)
@@ -681,8 +683,8 @@ stargazer(vcns_61, vcns_62, vcns_63, vcns_64, vcns_65, vcns_66,  type="text",
                              "Motor vehicle accidents", 
                              "Total population", "Disadvantage", "% Black", "% Hispanic", "Immigration", 
                              "Precipitation", "Temperature", "AQI", "OpenTable", "Spatial lag"),
-          title = "Table TK. Reanalysis of Table S6 using broader violent crime metric",
-          out = "s6_reanalysis_new_vars_vcn.txt")
+          title = "Table TK. Reanalysis of Table S6 using broader violent crime metric including simple assault",
+          out = "s6_reanalysis_new_vars_vcns.txt")
 
 
 stargazer(s_vcns_61, s_vcns_62, s_vcns_63, s_vcns_64, s_vcns_65, s_vcns_66,  type="text",
@@ -695,8 +697,63 @@ stargazer(s_vcns_61, s_vcns_62, s_vcns_63, s_vcns_64, s_vcns_65, s_vcns_66,  typ
                              "Motor vehicle accidents", 
                              "Total population", "Disadvantage", "% Black", "% Hispanic", "Immigration", 
                              "Precipitation", "Temperature", "AQI", "OpenTable", "Spatial lag"),
-          title = "Table TK. Reanalysis of Table S6 using broader violent crime metric, standardized coef.",
-          out = "s6_reanalysis_new_vars_std_vcn.txt")
+          title = "Table TK. Reanalysis of Table S6 using broader violent crime metric including simple assault, standardized coef.",
+          out = "s6_reanalysis_new_vars_std_vcns.txt")
 
+
+## make a short name version of results, and change the class of object to work with table output
+vcns_61 <- cr_vcns_periods_conf_nb_w
+vcns_62 <- cr_vcns_periods_conf_pstop_nb_w
+vcns_63 <- cr_vcns_periods_conf_vstop_nb_w
+vcns_64 <- cr_vcns_periods_conf_ar_da_dui_nb_w
+vcns_65 <- cr_vcns_periods_conf_ar_dis_nb_w
+vcns_66 <- cr_vcns_periods_conf_ar_dis_nofta_nb_w
+
+
+class(vcns_61) <- "lmerMod"
+class(vcns_62) <- "lmerMod"
+class(vcns_63) <- "lmerMod"
+class(vcns_64) <- "lmerMod"
+class(vcns_65) <- "lmerMod"
+class(vcns_66) <- "lmerMod"
+
+
+s_vcns_61 <- standardize (vcns_61, unchanged=c("period2","period3"))
+s_vcns_62 <- standardize (vcns_62, unchanged=c("period2","period3"))
+s_vcns_63 <- standardize (vcns_63, unchanged=c("period2","period3"))
+s_vcns_64 <- standardize (vcns_64, unchanged=c("period2","period3"))
+s_vcns_65 <- standardize (vcns_65, unchanged=c("period2","period3"))
+s_vcns_66 <- standardize (vcns_66, unchanged=c("period2","period3"))
+
+
+# Put locally as htm 
+setwd ("~/Downloads/replication_materials_data")
+
+stargazer(vcns_61, vcns_62, vcns_63, vcns_64, vcns_65, vcns_66,  type="html",
+          dep.var.labels=c("Periods only", "Pedestrian stops", "Vehicle stops", "Drug/Alc and DUI arrests", "Recoded Disorder arrests", "Recoded Disorder (No FTA)"),
+          initial.zero = FALSE, 
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          model.numbers = FALSE,
+          covariate.labels=c("COVID-19 period", "Floyd period", 
+                             "Pedestrian stops", "Vehicle stops", "Drug/Alc, and DUI arrests", "Re-Disorder arrests","Re-Disorder arrests no FTA",
+                             "Motor vehicle accidents", 
+                             "Total population", "Disadvantage", "% Black", "% Hispanic", "Immigration", 
+                             "Precipitation", "Temperature", "AQI", "OpenTable", "Spatial lag"),
+          title = "Table TK. Reanalysis of Table S6 using broader violent crime metric including simple assault",
+          out = "s6_reanalysis_new_vars_vcns.htm")
+
+
+stargazer(s_vcns_61, s_vcns_62, s_vcns_63, s_vcns_64, s_vcns_65, s_vcns_66,  type="html",
+          dep.var.labels=c("Periods only", "Pedestrian stops", "Vehicle stops", "Drug/Alc and DUI arrests", "Recoded Disorder arrests", "Recoded Disorder (No FTA)"),
+          initial.zero = FALSE, 
+          star.cutoffs = c(0.05, 0.01, 0.001),
+          model.numbers = FALSE,
+          covariate.labels=c("COVID-19 period", "Floyd period", 
+                             "Pedestrian stops", "Vehicle stops", "Drug/Alc and DUI arrests", "Re-Disorder arrests","Re-Disorder arrests no FTA",
+                             "Motor vehicle accidents", 
+                             "Total population", "Disadvantage", "% Black", "% Hispanic", "Immigration", 
+                             "Precipitation", "Temperature", "AQI", "OpenTable", "Spatial lag"),
+          title = "Table TK. Reanalysis of Table S6 using broader violent crime metric including simple assault, standardized coef.",
+          out = "s6_reanalysis_new_vars_std_vcns.htm")
 
 
