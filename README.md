@@ -6,6 +6,12 @@ This repo contains a few folders, primarily code, but also some of the data need
 
 As a github repository, you can see earlier versions of this files stored here, so if you want to see what was added initially, the customization required to replicate results, or the analysis of merge failures you do so [here](https://github.com/jkangbrown/when_police_replication/pulls?q=is%3Apr+is%3Aclosed). 
 
+## Key Results
+
+Plain text versions of key tables that present model results are stored in this repository. Replication results with failed data file merges are stored in this [folder](https://github.com/jkangbrown/when_police_replication/tree/main/replication_materials/replication_output). 
+
+Reanalysis results with corrected merges are stored in this [folder](https://github.com/jkangbrown/when_police_replication/tree/main/replication_materials/reanalysis_output).
+
 ### Replication Materials 
 
 Data and replication files taken from https://doi.org/10.17605/OSF.IO/CWFP2.
