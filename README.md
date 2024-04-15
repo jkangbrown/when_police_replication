@@ -70,3 +70,6 @@ Stations/Locations Denver County, CO (Location ID: FIPS:08031)
 1 Navigate to Denver's open data website for statistical neighborhoods https://www.denvergov.org/opendata/dataset/city-and-county-of-denver-statistical-neighborhoods
 
 2 download shapefile
+
+## Contact
+If you have any questions or need any additional information, please contact Jacob Kang-Brown, jkangbrown@vera.org.  
