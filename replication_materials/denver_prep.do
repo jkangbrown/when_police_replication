@@ -1351,6 +1351,7 @@ merge m:1 weekly using "$denver/weather.dta", gen(_merge7)
 	
 * Save and move on to the analysis R script or figure .do file
 	save "$denver/merged_data_for_analysis.dta", replace
+	use "$denver/merged_data_for_analysis.dta", clear
 	
 	
 	save "$denver/combined_dataset.dta", replace
