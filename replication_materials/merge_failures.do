@@ -1,16 +1,38 @@
 // log results
 log using "~/Documents/Github/when_police_replication/replication_materials/merge_failure_files/merge_failure_log.log", replace
-
+set more off
 /* 
-File for displaying information on merge failures in the code from Nix et al. 
+File for displaying information on merge failures in the replication dataset 
+preparation code from Nix et al. 
 
 Writen by Jacob Kang-Brown on Saturday April 6, 2024
+Revised on April 15, 2024 with additional comments for clarity. 
 
 This file copies the load commands and neighborhood-identifying-key specific commands
-from the replication code. It adds simple commands to reduce the dataset to each neighborhood key 
-used in the code for merging, and retains the string neighborhood variables in each file,
+from Nix et al.'s replication code. It adds simple commands to reduce the dataset to each neighborhood key 
+used in Nix et al.'s code for merging, and retains the string neighborhood variables in each file,
 renaming them to match the source data files. 
 
+The file is structured with a section for each neighborhood-level dataset, such as 1 CAD, 
+2 Stop Data, 3 Crime data. 
+
+The copied comments, file load, and neighborhood-key specific commands from Nix et al. are taken from 
+their "denver_prep.do" file and placed in the first subsection, at 1.1, 2.1, 3.1, etc.
+
+In the second subsection (1.2, 2.2, 2.3, etc.), my code reduces the dataset to the numeric 
+neighborhood key used by Nix et al. to merge files and the original string neighborhood names.
+It renames the string neighborhood names "dataset-short-name"_nb_key. This allows for more easy 
+assessment of the way that the data preparation code introduces errors in merges between datasets.  
+
+
+Only three files have merge issues: 3 crime, 6 ACS, and 7 shapefile. The other datasets 
+do not have merge issues. All the merges are done at once in section 8, and labels are applied to the 
+key used for merging, using code copied directly from Nix et al.'s "denver_prep.do" file.
+
+Commands to further clean up the dataset by dropping stata's merge variable and display the merge problems
+are at the end of the file, in section 9. 
+
+The resulting dataset is saved as merge_failure_table.dta
 
 */ 
 
@@ -217,6 +239,8 @@ merge 1:1 neighborhood using shape_merge.dta, gen(_m_shape)
 		72 "Washington Virginia Vale" 73 "Wellshire" 74 "West Colfax" 75 "West Highland" 76 "Westwood" ///
 		77 "Whittier" 78 "Windsor"
 	label values neighborhood nh
+
+// 9 Clean up file structure and list neighborhoods to display merge failures 
 
 drop _m*
 	

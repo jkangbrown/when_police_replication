@@ -244,7 +244,7 @@ use  "$denver/open_data_crime.dta", clear
 	merge 1:1 nh_week using "$denver/merged_data_for_reanalysis_new_data.dta", gen(_merge2)
 	
 	
-	* Replace missings with zeros (N = 98)
+	* Replace missings with zeros (N = 98) / New N = 217
 		local crime "crime_murder crime_rob crime_assault crime_rape crime_VC crime_VC_norape crime_mvt crime_cburg crime_rburg crime_larceny crime_tmv crime_prop crime_weapon crime_assault_cop crime_resist_cop crime_challenge_cop  crime_murder_alt crime_agg_aslt_alt crime_burglary crime_sexual_aslt crime_simp_aslt crime_VC_alt crime_VC_nosexual_alt crime_NVC crime_prop_alt"
 		foreach i in `crime' {
 			replace `i' = 0 if `i' == .
@@ -253,7 +253,7 @@ use  "$denver/open_data_crime.dta", clear
 	save "$denver/merged_data_for_reanalysis_new_data.dta", replace
 	save "$denver/merged_data_for_reanalysis_new_data_pre_arrest.dta", replace
 
-
+set more off 
 *********************************************************************************************************
 	* Import ARREST data, clean, collapse and merge
 
