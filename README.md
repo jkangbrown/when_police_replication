@@ -1,6 +1,6 @@
 # when_police_replication
 
-Replication and re-analysis repository for J. Nix, Huff, J., Wolfe, S. E., Pyrooz, D. C., and Mourtgos, S. M., "When police pull back: Neighborhood-level effects of de-policing on violent and property crime, a research note," _Criminology_ 2024;1–16. DOI: 10.1111/1745-9125.12363. Additional supporting information can be found in the full text tab for this article in the Wiley Online Library at http://onlinelibrary.wiley.com/doi/10.1111/crim.2024.62.issue-1/issuetoc.
+Replication and re-analysis repository for J. Nix, Huff, J., Wolfe, S. E., Pyrooz, D. C., and Mourtgos, S. M., "When police pull back: Neighborhood-level effects of de-policing on violent and property crime, a research note," _Criminology_ 2024;1–16. DOI: 10.1111/1745-9125.12363. Additional supporting information can be found in the full text tab for this article in the Wiley Online Library at https://onlinelibrary.wiley.com/doi/full/10.1111/1745-9125.12363.
 
 This repo contains a few folders, primarily code, but also some of the data needed to replicate the papers results. It also contains code to demonstrate that the results are an artifact of a failed merge between the various datasets used in the analysis. For more information on the failed merge, see the [merge failure analysis Stata do file](https://github.com/jkangbrown/when_police_replication/blob/main/replication_materials/merge_failures.do),  or [plain text Stata log](https://github.com/jkangbrown/when_police_replication/blob/main/replication_materials/merge_failure_files/merge_failure_log.log). 
 
