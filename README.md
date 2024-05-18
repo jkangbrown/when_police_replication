@@ -10,7 +10,7 @@ As a github repository, you can see earlier versions of this files stored here, 
 
 Plain text versions of key tables that present model results are stored in this repository. Replication results with failed data file merges are stored in this [folder](https://github.com/jkangbrown/when_police_replication/tree/main/replication_materials/replication_output). 
 
-Reanalysis results with corrected merges are stored in this [folder](https://github.com/jkangbrown/when_police_replication/tree/main/replication_materials/reanalysis_output).
+Reanalysis results with corrected merges are stored in this [folder](https://github.com/jkangbrown/when_police_replication/tree/main/replication_materials/reanalysis_output). (Note: Upon notification that the three merge_fix.txt tables in the reanalysis_output folder were the same as those in the replication folder but with different titles, I re-ran the reanalysis.R code stored in this repo. While the correct tables had been sent in the original memo to the editors and authors, it is worth correcting these plain text versions in the public repository, and ensuring their filenames reflect the current version of code.)
 
 ### Replication Materials 
 
